@@ -7,6 +7,24 @@ GEM
       faraday-cookie_jar (~> 0.0.6)
       json (~> 1.8)
       ms_rest_azure (~> 0.1)
+    azure_mgmt_network (0.1.1)
+      concurrent-ruby (>= 1.0.0.pre1, < 2)
+      faraday (~> 0.9)
+      faraday-cookie_jar (~> 0.0.6)
+      json (~> 1.8)
+      ms_rest_azure (~> 0.1)
+    azure_mgmt_resources (0.1.1)
+      concurrent-ruby (>= 1.0.0.pre1, < 2)
+      faraday (~> 0.9)
+      faraday-cookie_jar (~> 0.0.6)
+      json (~> 1.8)
+      ms_rest_azure (~> 0.1)
+    azure_mgmt_storage (0.1.1)
+      concurrent-ruby (>= 1.0.0.pre1, < 2)
+      faraday (~> 0.9)
+      faraday-cookie_jar (~> 0.0.6)
+      json (~> 1.8)
+      ms_rest_azure (~> 0.1)
     concurrent-ruby (1.0.0.pre4)
     domain_name (0.5.25)
       unf (>= 0.0.5, < 1.0.0)
@@ -40,3 +58,6 @@ PLATFORMS
 
 DEPENDENCIES
   azure_mgmt_compute
+  azure_mgmt_network
+  azure_mgmt_resources
+  azure_mgmt_storage
