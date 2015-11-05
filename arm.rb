@@ -206,6 +206,10 @@ def create_virtual_network(network_client, resource_group)
   network_client.virtual_networks.create_or_update(resource_group.name, virtualNetworkName, params).value!.body
 end
 
+def get_virtual_machine(compute_client, resource_group_name, vm_name)
+  compute_client.virtual_machines.get(resource_group_name, vm_name, 'instanceView').value!.body
+end
+
 def create_virtual_machine(compute_client, network_client, storage_client, resource_group)
   puts " * building OS profile"
   os_profile = OSProfile.new
@@ -242,6 +246,14 @@ def resource_group_delete(resources_client, rg_name)
   promise = resources_client.resource_groups.delete(rg_name)
   result = promise.value!
   result.body
+end
+
+def get_ip_address(network_client, name)
+  network_client.public_ip_addresses.get(name, 'ip-' + name)
+end
+
+def get_security_rules(network_client, name)
+  network_client.security_rules.list(name, name).value!.body
 end
 
 begin
@@ -294,12 +306,21 @@ begin
   resource_group = result.body
   puts " * Created #{resource_group.name} with id '#{resource_group.id}' (#{resource_group.location})"
 
-  # puts "Creating a virtual machine named '#{TEST_NAME}' ..."
-  # vm = create_virtual_machine(compute_client, network_client, storage_client, resource_group)
-  # puts " * Created #{vm.name} with id : '#{vm.id}'"
+  puts "Creating a virtual machine named '#{TEST_NAME}' ..."
+  vm = create_virtual_machine(compute_client, network_client, storage_client, resource_group)
+  puts " * Created #{vm.name} with id : '#{vm.id}'"
 
+  puts "Getting a virtual machine named '#{TEST_NAME}' ..."
+  vm = get_virtual_machine(compute_client, TEST_NAME, TEST_NAME)
+  puts " * Got #{vm} with id : '#{vm.id}'"
 
+  puts "Getting assigned public ip address for virtual machine named '#{TEST_NAME}' ..."
+  ip = get_ip_address(network_client, TEST_NAME)
+  puts " * Got #{ip}"
 
+  puts "Getting security rules for virtual machine named '#{TEST_NAME}' ..."
+  srs = get_security_rules(network_client, TEST_NAME)
+  puts " * Got #{srs}"
 
 rescue MsRestAzure::AzureOperationError => ex
   puts "MsRestAzure::AzureOperationError : "
