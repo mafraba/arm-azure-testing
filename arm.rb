@@ -124,13 +124,44 @@ def build_network_interface_param(network_client, resource_group, subnet)
 end
 
 def create_network_security_group(network_client, resource_group)
+  sr_props = SecurityRulePropertiesFormat.new
+  sr_props.priority = 100
+  sr_props.source_port_range = '1-65000'
+  sr_props.destination_port_range = '1-65000'
+  sr_props.source_address_prefix = '*'
+  sr_props.destination_address_prefix = '*'
+  sr_props.protocol = 'Tcp' # 'Udp' or '*'
+  sr_props.access = 'Deny'
+  sr_props.direction = 'Inbound' # 'Outbound'
+  sr = SecurityRule.new
+  sr.properties = sr_props
+  sr.name = "sr-#{TEST_NAME}"
   props = NetworkSecurityGroupPropertiesFormat.new
+  props.security_rules = [sr]
   nsg = NetworkSecurityGroup.new
   nsg.properties = props
   nsg.location = resource_group.location
   nsg = network_client.network_security_groups.create_or_update(resource_group.name, resource_group.name, nsg).value!.body
-  create_security_rules(network_client, nsg, resource_group)
+  # create_security_rules(network_client, nsg, resource_group)
   nsg
+end
+
+def update_security_group(network_client, nsg)
+  sr_props = SecurityRulePropertiesFormat.new
+  sr_props.priority = 100
+  sr_props.source_port_range = '1-65000'
+  sr_props.destination_port_range = '1-65000'
+  sr_props.source_address_prefix = '*'
+  sr_props.destination_address_prefix = '*'
+  sr_props.protocol = 'Tcp' # 'Udp' or '*'
+  sr_props.access = 'Allow'
+  sr_props.direction = 'Inbound' # 'Outbound'
+  sr = SecurityRule.new
+  sr.properties = sr_props
+  sr.name = "sr-#{TEST_NAME}"
+  nsg.properties.security_rules = [sr]
+  name = TEST_NAME
+  network_client.network_security_groups.create_or_update(name, name, nsg).value!.body
 end
 
 def create_security_rules(network_client, security_group, resource_group)
@@ -256,6 +287,14 @@ def get_security_rules(network_client, name)
   network_client.security_rules.list(name, name).value!.body
 end
 
+def get_security_group(network_client, name)
+  network_client.network_security_groups.get(name, name).value!.body
+end
+
+def get_inex_security_group(network_client, name)
+  network_client.network_security_groups.get(name, name+'-nonexisting').value!.body
+end
+
 begin
   puts "Azure ARM. Authenticating with params: tenant_id: #{tenant_id} , client_id: #{client_id} , secret: #{secret}"
   credentials = authenticate(tenant_id, client_id, secret)
@@ -321,6 +360,18 @@ begin
   puts "Getting security rules for virtual machine named '#{TEST_NAME}' ..."
   srs = get_security_rules(network_client, TEST_NAME)
   puts " * Got #{srs}"
+
+  puts "Getting security group for virtual machine named '#{TEST_NAME}' ..."
+  nsg = get_security_group(network_client, TEST_NAME)
+  puts " * Got #{nsg}"
+
+  puts "Updating security group for virtual machine named '#{TEST_NAME}' ..."
+  unsg = update_security_group(network_client, nsg)
+  puts " * Got #{unsg}"  
+
+  # puts "Getting inexistent security group for virtual machine named '#{TEST_NAME}' ..."
+  # nensg = get_inex_security_group(network_client, TEST_NAME)
+  # puts " * Got #{nensg}"
 
 rescue MsRestAzure::AzureOperationError => ex
   puts "MsRestAzure::AzureOperationError : "
